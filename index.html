@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Estadístico</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f7f7f7;
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .sidebar {
+            width: 300px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+        
+        .main-panel {
+            flex: 1;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-top: 20px;
+        }
+        
+        input, select, button, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .help-text {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .radio-group {
+            margin-bottom: 15px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .radio-option input {
+            width: auto;
+            margin-right: 10px;
+            margin-bottom: 0;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+            transition: background-color 0.3s;
+        }
+        
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        canvas {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .summary-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .color-peru { background-color: peru; }
+        .color-red { background-color: red; }
+        .color-salmon { background-color: salmon; }
+        .color-steelblue { background-color: steelblue; }
+        
+        .observation {
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+        }
+
+        #dataInputSection textarea {
+            height: 150px;
+            font-family: monospace;
+        }
+        
+        .form-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        
+        .form-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tipos de funciones</h1>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="form-section" id="dataInputSection">
+                <h3>Entrada de Datos</h3>
+                <label for="dataInput">Ingrese datos separados por comas:</label>
+                <textarea id="dataInput" placeholder="Ej: 10,15,20,25,30,35,40,45,50,55,60"></textarea>
+                <button id="loadDataBtn">Cargar Datos</button>
+                
+                <div class="help-text">
+                    También puede ingresar datos en formato CSV (una variable por línea):<br>
+                    var1: 10,15,20,25<br>
+                    var2: 30,35,40,45
+                </div>
+            </div>
+            
+            <label for="statistic">Seleccione el estadístico:</label>
+            <select id="statistic">
+                <option value="mean">Media</option>
+                <option value="median">Mediana</option>
+                <option value="sd">Desviación Estándar</option>
+            </select>
+            
+            <label for="variable">Seleccione la variable:</label>
+            <select id="variable"></select>
+            
+            <label for="bins">Número de bins:</label>
+            <input type="number" id="bins" value="15" min="2" max="100">
+            
+            <div>
+                <label>Seleccione el color:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="color-peru" name="color" value="peru">
+                        <label for="color-peru">Peru</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="color-red" name="color" value="red">
+                        <label for="color-red">Red</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="color-salmon" name="color" value="salmon">
+                        <label for="color-salmon">Salmon</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="color-steelblue" name="color" value="steelblue" checked>
+                        <label for="color-steelblue">Steel Blue</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="analyzeBtn">Analizar Datos</button>
+            
+            <div class="observation" id="observation"></div>
+        </div>
+        
+        <div class="main-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="estructura">Estructura</div>
+                <div class="tab" data-tab="grafica">Gráfica</div>
+                <div class="tab" data-tab="datos">Datos</div>
+                <div class="tab" data-tab="tablaNa">Tabla Frec. No Agrupados</div>
+                <div class="tab" data-tab="tablaAg">Tabla Frec. Agrupados</div>
+                <div class="tab" data-tab="tablaSturges">Tabla Frec. Sturges</div>
+                <div class="tab" data-tab="resumen">Resumen</div>
+                <div class="tab" data-tab="estadisticos">Estadísticos</div>
+                <div class="tab" data-tab="histograma">Histograma</div>
+                <div class="tab" data-tab="histogramaSturges">Histograma-Sturges</div>
+                <div class="tab" data-tab="poligono">Polígono Frec.</div>
+                <div class="tab" data-tab="poligonoAlt">Polígono Frec. Alt.</div>
+                <div class="tab" data-tab="ojiva">Ojiva</div>
+                <div class="tab" data-tab="barras">Diagrama de Barras</div>
+                <div class="tab" data-tab="boxplot">Caja y Bigotes</div>
+                <div class="tab" data-tab="tallo">Tallo y Hoja</div>
+                <div class="tab" data-tab="torta">Gráfico de Torta</div>
+            </div>
+            <div class="tab-content active" id="estructura">
+                <h2>Estructura de los Datos</h2>
+                <div class="summary-box" id="estructuraDisplay"></div>
+            </div>
+            
+            <div class="tab-content" id="grafica">
+                <h2>Gráfica de Dispersión</h2>
+                <div>
+                    <label for="variable2">Seleccione la segunda variable para gráfica:</label>
+                    <select id="variable2"></select>
+                    <button id="plotScatterBtn">Generar Gráfica</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scatterPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="datos">
+                <h2>Datos</h2>
+                <div id="dataTable"></div>
+            </div>
+            
+            <div class="tab-content" id="tablaNa">
+                <h2>Tabla de Frecuencias para Datos no Agrupados</h2>
+                <div id="freqTableNa"></div>
+            </div>
+            
+            <div class="tab-content" id="tablaAg">
+                <h2>Tabla de Frecuencias para Datos Agrupados</h2>
+                <div id="freqTableAg"></div>
+            </div>
+            
+            <div class="tab-content" id="tablaSturges">
+                <h2>Tabla de Frecuencias para Datos Agrupados (Sturges)</h2>
+                <div id="freqTableSturges"></div>
+            </div>
+            
+            <div class="tab-content" id="resumen">
+                <h2>Resumen Estadístico</h2>
+                <div class="summary-box" id="summaryStats"></div>
+            </div>
+            
+            <div class="tab-content" id="estadisticos">
+                <h2>Estadísticos</h2>
+                <div id="statsTable"></div>
+            </div>
+            
+            <div class="tab-content" id="histograma">
+                <h2>Histograma</h2>
+                <p>Un Histograma es la representación gráfica de una tabla de frecuencias.</p>
+                <div class="chart-container">
+                    <canvas id="histogramPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="histogramaSturges">
+                <h2>Histograma con Regla de Sturges</h2>
+                <div class="chart-container">
+                    <canvas id="histogramSturgesPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="poligono">
+                <h2>Polígono de Frecuencia</h2>
+                <p>Un Polígono de Frecuencia es el nombre que recibe una clase de gráfico que se crea a partir de un histograma de frecuencia.</p>
+                <div class="chart-container">
+                    <canvas id="polygonPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="poligonoAlt">
+                <h2>Polígono de Frecuencia (Visualización Alternativa)</h2>
+                <p>Gráfico con frecuencia absoluta en el eje izquierdo y porcentaje en el eje derecho.</p>
+                <div class="chart-container">
+                    <canvas id="polygonAltPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="ojiva">
+                <h2>Ojiva Frecuencia acumulada</h2>
+                <p>Una Ojiva se utiliza para representar la frecuencia acumulada.</p>
+                <div class="chart-container">
+                    <canvas id="ojivaPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="barras">
+                <h2>Diagrama de Barras</h2>
+                <div class="chart-container">
+                    <canvas id="barPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="boxplot">
+                <h2>Caja y Bigotes</h2>
+                <div class="chart-container">
+                    <canvas id="boxPlot"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="tallo">
+                <h2>Diagrama de Tallo y Hoja</h2>
+                <div class="summary-box" id="stemLeafDisplay"></div>
+            </div>
+
+            <div class="tab-content" id="torta">
+                <h2>Gráfico de Torta</h2>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Variables globales
+        let dataSet = {};
+        let currentColor = 'steelblue';
+        let selectedVariable = '';
+        let selectedVariable2 = '';
+        let charts = {}; // Almacenar referencias a los gráficos para poder actualizarlos
+
+// Función para inicializar la aplicación
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración de los listeners de eventos
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Cambiar pestaña activa
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Mostrar contenido de la pestaña
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(this.dataset.tab).classList.add('active');
+        });
+    });
+    
+    // Eventos para los botones principales
+    document.getElementById('loadDataBtn').addEventListener('click', loadData);
+    document.getElementById('analyzeBtn').addEventListener('click', analyzeData);
+    document.getElementById('plotScatterBtn').addEventListener('click', updateScatterPlot);
+    
+    // Evento para selección de color
+    document.querySelectorAll('input[name="color"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            currentColor = this.value;
+            analyzeData();
+        });
+    });
+    
+    // Cargar datos de ejemplo por defecto
+    document.getElementById('dataInput').value = "10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60\nvar2: 12, 18, 22, 28, 32, 38, 42, 48, 52, 58, 62";
+    
+    // Mostrar mensaje inicial
+    document.getElementById('observation').textContent = 'Cargue datos para comenzar el análisis';
+});
+
+// Función para cargar los datos desde el textarea
+function loadData() {
+    const dataInput = document.getElementById('dataInput').value.trim();
+    
+    if (!dataInput) {
+        alert('Por favor, ingrese datos para analizar.');
+        return;
+    }
+    
+    try {
+        // Resetear dataSet
+        dataSet = {};
+        
+        // Dividir por líneas para detectar múltiples variables
+        const lines = dataInput.split('\n');
+        
+        if (lines.length === 1) {
+            // Un solo conjunto de datos
+            const values = lines[0].split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            dataSet['variable1'] = values;
+        } else {
+            // Múltiples variables
+            lines.forEach((line, index) => {
+                if (line.trim()) {
+                    let varName = '';
+                    let dataValues = [];
+                    
+                    if (line.includes(':')) {
+                        // Formato "nombre: valores"
+                        const parts = line.split(':');
+                        varName = parts[0].trim();
+                        dataValues = parts[1].split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                    } else {
+                        // Sin nombre específico
+                        varName = `variable${index + 1}`;
+                        dataValues = line.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                    }
+                    
+                    if (dataValues.length > 0) {
+                        dataSet[varName] = dataValues;
+                    }
+                }
+            });
+        }
+        
+        // Verificar si se cargaron datos
+        if (Object.keys(dataSet).length === 0) {
+            throw new Error('No se pudieron procesar los datos. Verifique el formato.');
+        }
+        
+        // Actualizar selector de variables
+        updateVariableSelectors();
+        
+        // Actualizar observación
+        const totalRows = Object.values(dataSet).reduce((max, arr) => Math.max(max, arr.length), 0);
+        document.getElementById('observation').textContent = `Longitud de filas en la data = ${totalRows}`;
+        
+        // Mostrar estructura inicial
+        updateEstructura();
+        
+        // Realizar análisis inicial
+        analyzeData();
+        
+    } catch (error) {
+        alert('Error al cargar los datos: ' + error.message);
+    }
+}
+
+// Función para actualizar selectores de variables
+function updateVariableSelectors() {
+    const varSelect = document.getElementById('variable');
+    const var2Select = document.getElementById('variable2');
+    
+    // Limpiar selectores
+    varSelect.innerHTML = '';
+    var2Select.innerHTML = '';
+    
+    // Agregar opciones
+    Object.keys(dataSet).forEach(varName => {
+        varSelect.add(new Option(varName, varName));
+        var2Select.add(new Option(varName, varName));
+    });
+    
+    // Seleccionar primera y segunda variable
+    if (varSelect.options.length > 0) {
+        selectedVariable = varSelect.options[0].value;
+        varSelect.selectedIndex = 0;
+    }
+    
+    if (var2Select.options.length > 1) {
+        selectedVariable2 = var2Select.options[1].value;
+        var2Select.selectedIndex = 1;
+    } else if (var2Select.options.length > 0) {
+        selectedVariable2 = var2Select.options[0].value;
+        var2Select.selectedIndex = 0;
+    }
+    
+    // Configurar evento change
+    varSelect.addEventListener('change', function() {
+        selectedVariable = this.value;
+    });
+    
+    var2Select.addEventListener('change', function() {
+        selectedVariable2 = this.value;
+    });
+}
+
+// Función para analizar los datos y actualizar todas las visualizaciones
+function analyzeData() {
+    if (Object.keys(dataSet).length === 0) {
+        alert("Por favor, cargue datos primero.");
+        return;
+    }
+    
+    selectedVariable = document.getElementById('variable').value;
+    const binsCount = parseInt(document.getElementById('bins').value);
+    const statistic = document.getElementById('statistic').value;
+    
+    if (!selectedVariable || !dataSet[selectedVariable]) {
+        alert("Seleccione una variable válida.");
+        return;
+    }
+    
+    // Actualizar todas las visualizaciones
+    updateEstructura();
+    updateDataTable();
+    updateFrequencyTables(binsCount);
+    updateSummaryStats();
+    updateStatisticsTable(statistic);
+    updateHistograms(binsCount);
+    updatePolygon(binsCount);
+    updatePolygonAlt(binsCount);
+    updateOjiva(binsCount);
+    updateBarPlot(binsCount);
+    updateBoxPlot();
+    updateScatterPlot();
+    updateStemLeaf();
+    updatePieChart();
+}
+
+// Función para calcular estadísticas
+function calculateStats(data) {
+    if (!data || data.length === 0) return {};
+    
+    // Ordenar los datos para cálculos
+    const sortedData = [...data].sort((a, b) => a - b);
+    const n = sortedData.length;
+    
+    // Calcular media
+    const mean = sortedData.reduce((sum, val) => sum + val, 0) / n;
+    
+    // Calcular mediana
+    let median;
+    if (n % 2 === 0) {
+        median = (sortedData[n/2 - 1] + sortedData[n/2]) / 2;
+    } else {
+        median = sortedData[Math.floor(n/2)];
+    }
+    
+    // Calcular desviación estándar
+    const variance = sortedData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+    const stdDev = Math.sqrt(variance);
+    
+    // Calcular mínimo, máximo y cuartiles
+    const min = sortedData[0];
+    const max = sortedData[n - 1];
+    const q1 = sortedData[Math.floor(n * 0.25)];
+    const q3 = sortedData[Math.floor(n * 0.75)];
+    
+    // Calcular moda (valor más frecuente)
+    const freqMap = {};
+    sortedData.forEach(val => {
+        freqMap[val] = (freqMap[val] || 0) + 1;
+    });
+    
+    let mode = [];
+    let maxFreq = 0;
+    Object.entries(freqMap).forEach(([val, freq]) => {
+        if (freq > maxFreq) {
+            maxFreq = freq;
+            mode = [parseFloat(val)];
+        } else if (freq === maxFreq) {
+            mode.push(parseFloat(val));
+        }
+    });
+    
+    // Calcular coeficiente de asimetría
+    const skewness = mode.length > 0 ? (mean - mode[0]) / stdDev : 0;
+    
+    return {
+        n: n,
+        mean: mean,
+        median: median,
+        mode: mode,
+        stdDev: stdDev,
+        variance: variance,
+        min: min,
+        max: max,
+        q1: q1,
+        q3: q3,
+        iqr: q3 - q1,
+        range: max - min,
+        skewness: skewness
+    };
+}
+
+// Función para aplicar la regla de Sturges
+function sturgesRule(data) {
+    const n = data.length;
+    return Math.ceil(1 + 3.322 * Math.log10(n));
+}
+
+// Función para crear intervalos
+function createIntervals(data, numBins) {
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min;
+    const binWidth = range / numBins;
+    
+    const intervals = [];
+    for (let i = 0; i < numBins; i++) {
+        const lowerBound = min + i * binWidth;
+        const upperBound = min + (i + 1) * binWidth;
+        intervals.push({
+            lower: lowerBound,
+            upper: upperBound,
+            center: (lowerBound + upperBound) / 2
+        });
+    }
+    
+    return intervals;
+}
+
+// Función para crear tabla de frecuencias
+function createFrequencyTable(data, intervals) {
+    const freqTable = intervals.map(interval => ({
+        interval: `${interval.lower.toFixed(2)} - ${interval.upper.toFixed(2)}`,
+        center: interval.center,
+        frequency: 0,
+        relFreq: 0,
+        cumFreq: 0,
+        cumRelFreq: 0
+    }));
+    
+    // Calcular frecuencias
+    data.forEach(value => {
+        for (let i = 0; i < intervals.length; i++) {
+            if (value >= intervals[i].lower && (value < intervals[i].upper || (i === intervals.length - 1 && value === intervals[i].upper))) {
+                freqTable[i].frequency++;
+                break;
+            }
+        }
+    });
+    
+    // Calcular frecuencias relativas y acumuladas
+    let cumFreq = 0;
+    let cumRelFreq = 0;
+    
+    freqTable.forEach(row => {
+        row.relFreq = row.frequency / data.length;
+        cumFreq += row.frequency;
+        cumRelFreq += row.relFreq;
+        row.cumFreq = cumFreq;
+        row.cumRelFreq = cumRelFreq;
+    });
+    
+    return freqTable;
+}
+
+// Función para crear tabla HTML
+function createHTMLTable(headers, data) {
+    let tableHTML = '<table><thead><tr>';
+    
+    // Encabezados
+    headers.forEach(header => {
+        tableHTML += `<th>${header}</th>`;
+    });
+    
+    tableHTML += '</tr></thead><tbody>';
+    
+    // Datos
+    data.forEach(row => {
+        tableHTML += '<tr>';
+        headers.forEach(header => {
+            let cellValue = row[header];
+            // Formatear números
+            if (typeof cellValue === 'number') {
+                cellValue = cellValue.toFixed(2);
+            }
+            tableHTML += `<td>${cellValue}</td>`;
+        });
+        tableHTML += '</tr>';
+    });
+    
+    tableHTML += '</tbody></table>';
+    return tableHTML;
+}
+
+// Funciones para actualizar las diferentes visualizaciones
+function updateEstructura() {
+    let structureText = 'Estructura de los datos:\n\n';
+    
+    Object.entries(dataSet).forEach(([varName, values]) => {
+        structureText += `${varName}: numeric [${values.length}] `;
+        if (values.length <= 20) {
+            structureText += values.map(v => v.toFixed(2)).join(', ');
+        } else {
+            structureText += values.slice(0, 5).map(v => v.toFixed(2)).join(', ');
+            structureText += ', ... , ';
+            structureText += values.slice(-5).map(v => v.toFixed(2)).join(', ');
+        }
+        structureText += '\n';
+    });
+    
+    document.getElementById('estructuraDisplay').textContent = structureText;
+}
+
+function updateDataTable() {
+    const data = dataSet[selectedVariable] || [];
+    if (data.length === 0) return;
+    
+    const bins = parseInt(document.getElementById('bins').value);
+    const limitedData = data.slice(0, bins);
+    
+    // Crear tabla simple de datos
+    const tableData = limitedData.map((value, index) => ({
+        'Índice': index + 1,
+        'Valor': value
+    }));
+    
+    const tableHTML = createHTMLTable(['Índice', 'Valor'], tableData);
+    document.getElementById('dataTable').innerHTML = tableHTML;
+}
+
+
+    
+    function updateFrequencyTables(binsCount) {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        // Tabla para datos no agrupados
+        const uniqueValues = [...new Set(data.slice(0, binsCount))].sort((a, b) => a - b);
+        const freqTableNA = uniqueValues.map(value => {
+            const frequency = data.filter(val => val === value).length;
+            return {
+                'Valor': value,
+                'Frecuencia': frequency,
+                'Frec. Relativa': frequency / data.length,
+                'Frec. Acumulada': 0, // Se calculará abajo
+                'Frec. Rel. Acum.': 0 // Se calculará abajo
+            };
+        });
+        
+        // Calcular acumulados
+        let cumFreq = 0;
+        let cumRelFreq = 0;
+        freqTableNA.forEach(row => {
+            cumFreq += row['Frecuencia'];
+            cumRelFreq += row['Frec. Relativa'];
+            row['Frec. Acumulada'] = cumFreq;
+            row['Frec. Rel. Acum.'] = cumRelFreq;
+        });
+        
+        // Tabla para datos agrupados
+        const intervals = createIntervals(data, binsCount);
+        const freqTableAg = createFrequencyTable(data, intervals);
+        
+        // Tabla usando regla de Sturges
+        const sturgesBins = sturgesRule(data);
+        const sturgesIntervals = createIntervals(data, sturgesBins);
+        const freqTableSturges = createFrequencyTable(data, sturgesIntervals);
+        
+        // Mostrar tablas
+        document.getElementById('freqTableNa').innerHTML = createHTMLTable(
+            ['Valor', 'Frecuencia', 'Frec. Relativa', 'Frec. Acumulada', 'Frec. Rel. Acum.'],
+            freqTableNA
+        );
+        
+        document.getElementById('freqTableAg').innerHTML = createHTMLTable(
+            ['interval', 'center', 'frequency', 'relFreq', 'cumFreq', 'cumRelFreq'],
+            freqTableAg
+        );
+        
+        document.getElementById('freqTableSturges').innerHTML = createHTMLTable(
+            ['interval', 'center', 'frequency', 'relFreq', 'cumFreq', 'cumRelFreq'],
+            freqTableSturges
+        );
+    }
+    
+    function updateSummaryStats() {
+        let summaryText = '';
+        
+        Object.entries(dataSet).forEach(([varName, values]) => {
+            if (values && values.length > 0) {
+                const stats = calculateStats(values);
+                
+                summaryText += `===== ${varName} =====\n`;
+                summaryText += `n: ${stats.n}\n`;
+                summaryText += `Min: ${stats.min.toFixed(2)}\n`;
+                summaryText += `1st Qu: ${stats.q1.toFixed(2)}\n`;
+                summaryText += `Median: ${stats.median.toFixed(2)}\n`;
+                summaryText += `Mean: ${stats.mean.toFixed(2)}\n`;
+                summaryText += `3rd Qu: ${stats.q3.toFixed(2)}\n`;
+                summaryText += `Max: ${stats.max.toFixed(2)}\n`;
+                summaryText += `Std Dev: ${stats.stdDev.toFixed(2)}\n`;
+                summaryText += `Var: ${stats.variance.toFixed(2)}\n`;
+                summaryText += `Range: ${stats.range.toFixed(2)}\n`;
+                summaryText += `IQR: ${stats.iqr.toFixed(2)}\n`;
+                summaryText += `Mode: ${stats.mode.map(v => v.toFixed(2)).join(', ')}\n`;
+                summaryText += `Skewness: ${stats.skewness.toFixed(2)}\n\n`;
+            }
+        });
+        
+        document.getElementById('summaryStats').textContent = summaryText;
+    }
+    
+    function updateStatisticsTable(statistic) {
+        // Tabla de estadísticos seleccionados
+        const headers = ['Variable', statistic];
+        const tableData = [];
+        
+        Object.entries(dataSet).forEach(([varName, values]) => {
+            let statValue;
+            
+            switch(statistic) {
+                case 'mean':
+                    statValue = calculateStats(values).mean;
+                    break;
+                case 'median':
+                    statValue = calculateStats(values).median;
+                    break;
+                case 'sd':
+                    statValue = calculateStats(values).stdDev;
+                    break;
+                default:
+                    statValue = 0;
+            }
+            
+            tableData.push({
+                'Variable': varName,
+                [statistic]: statValue
+            });
+        });
+        
+        const tableHTML = createHTMLTable(headers, tableData);
+        document.getElementById('statsTable').innerHTML = tableHTML;
+    }
+    
+    // Función para destruir un gráfico existente antes de crear uno nuevo
+    function destroyChart(canvasId) {
+        if (charts[canvasId]) {
+            charts[canvasId].destroy();
+            charts[canvasId] = null;
+        }
+    }
+    
+    function updateHistograms(binsCount) {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        // Histograma normal
+        destroyChart('histogramPlot');
+        const ctx = document.getElementById('histogramPlot').getContext('2d');
+        
+        // Crear intervalos
+        const intervals = createIntervals(data, binsCount);
+        const freqTable = createFrequencyTable(data, intervals);
+        
+        charts['histogramPlot'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: freqTable.map(row => row.interval),
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: freqTable.map(row => row.frequency),
+                    backgroundColor: currentColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Histograma de ${selectedVariable}`
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frecuencia'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: selectedVariable
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Histograma con regla de Sturges
+        destroyChart('histogramSturgesPlot');
+        const sturgesCtx = document.getElementById('histogramSturgesPlot').getContext('2d');
+        
+        const sturgesBins = sturgesRule(data);
+        const sturgesIntervals = createIntervals(data, sturgesBins);
+        const sturgesFreqTable = createFrequencyTable(data, sturgesIntervals);
+        
+        charts['histogramSturgesPlot'] = new Chart(sturgesCtx, {
+            type: 'bar',
+            data: {
+                labels: sturgesFreqTable.map(row => row.interval),
+                datasets: [{
+                    label: 'Frecuencia (Sturges)',
+                    data: sturgesFreqTable.map(row => row.frequency),
+                    backgroundColor: currentColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Histograma de ${selectedVariable} (Regla de Sturges)`
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frecuencia'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: selectedVariable
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updatePolygon(binsCount) {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        destroyChart('polygonPlot');
+        const ctx = document.getElementById('polygonPlot').getContext('2d');
+        
+        // Crear intervalos
+        const sturgesBins = sturgesRule(data);
+        const intervals = createIntervals(data, sturgesBins);
+        const freqTable = createFrequencyTable(data, intervals);
+        
+        charts['polygonPlot'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: freqTable.map(row => row.center.toFixed(2)),
+                datasets: [{
+                    label: 'Polígono de Frecuencias',
+                    data: freqTable.map(row => row.frequency),
+                    borderColor: currentColor,
+                    borderWidth: 2,
+                    pointBackgroundColor: currentColor,
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Polígono de Frecuencias de ${selectedVariable}`
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frecuencia'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Centros de clase'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updatePolygonAlt(binsCount) {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        destroyChart('polygonAltPlot');
+        const ctx = document.getElementById('polygonAltPlot').getContext('2d');
+        
+        // Crear intervalos
+        const sturgesBins = sturgesRule(data);
+        const intervals = createIntervals(data, sturgesBins);
+        const freqTable = createFrequencyTable(data, intervals);
+        
+        // Calcular valores de porcentaje para el eje derecho
+        const totalData = data.length;
+        const percentageData = freqTable.map(row => (row.frequency / totalData) * 100);
+        
+        charts['polygonAltPlot'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: freqTable.map(row => row.center.toFixed(2)),
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: freqTable.map(row => row.frequency),
+                    borderColor: currentColor,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: currentColor,
+                    tension: 0.1,
+                    fill: false,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Porcentaje',
+                    data: percentageData,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                    borderDash: [5, 5],
+                    tension: 0.1,
+                    fill: false,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Polígono de Frecuencias con Porcentaje',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label;
+                                const value = context.raw;
+                                
+                                if (datasetLabel === 'Porcentaje') {
+                                    return `${datasetLabel}: ${value.toFixed(2)}%`;
+                                } else {
+                                    return `${datasetLabel}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frecuencia Absoluta',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: Math.max(...percentageData) * 1.1, // Ajustar escala para que se vea bien
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Porcentaje (%)',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Centros de clase',
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateOjiva(binsCount) {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        destroyChart('ojivaPlot');
+        const ctx = document.getElementById('ojivaPlot').getContext('2d');
+        
+        // Crear intervalos y tabla de frecuencias
+        const sturgesBins = sturgesRule(data);
+        const intervals = createIntervals(data, sturgesBins);
+        const freqTable = createFrequencyTable(data, intervals);
+        
+        charts['ojivaPlot'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: freqTable.map(row => row.interval),
+                datasets: [{
+                    label: 'Frecuencia Acumulada',
+                    data: freqTable.map(row => row.cumFreq),
+                    borderColor: currentColor,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: currentColor,
+                    tension: 0.1,
+                    fill: false,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Porcentaje Acumulado',
+                    data: freqTable.map(row => row.cumRelFreq * 100),
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                    borderDash: [5, 5],
+                    tension: 0.1,
+                    fill: false,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Ojiva - Frecuencia Acumulada',
+                        font: {
+                            size: 16
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frecuencia Acumulada'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Porcentaje Acumulado (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Intervalos'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateBarPlot(binsCount) {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        destroyChart('barPlot');
+        const ctx = document.getElementById('barPlot').getContext('2d');
+        
+        // Para diagrama de barras usar valores únicos (categorías)
+        const limitedData = data.slice(0, binsCount);
+        const uniqueValues = [...new Set(limitedData)].sort((a, b) => a - b);
+        const freqCounts = uniqueValues.map(value => {
+            return limitedData.filter(val => val === value).length;
+        });
+        
+        charts['barPlot'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: uniqueValues.map(val => val.toFixed(2)),
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: freqCounts,
+                    backgroundColor: currentColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Barras horizontales
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Diagrama de Barras'
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Frecuencia'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: selectedVariable
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateBoxPlot() {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        destroyChart('boxPlot');
+        const ctx = document.getElementById('boxPlot').getContext('2d');
+        
+        // Calcular estadísticas para el boxplot
+        const stats = calculateStats(data);
+        
+        // Crear un boxplot manual
+        charts['boxPlot'] = new Chart(ctx, {
+            type: 'bar', // Usamos barras para simular un boxplot
+            data: {
+                labels: ['Boxplot'],
+                datasets: [{
+                    label: 'Min a Q1',
+                    data: [stats.q1 - stats.min],
+                    backgroundColor: 'rgba(0, 0, 0, 0)', // Transparente
+                    borderColor: currentColor,
+                    borderWidth: 1,
+                    base: stats.min,
+                }, {
+                    label: 'Q1 a Mediana',
+                    data: [stats.median - stats.q1],
+                    backgroundColor: currentColor,
+                    borderColor: currentColor,
+                    borderWidth: 1,
+                    base: stats.q1,
+                }, {
+                    label: 'Mediana a Q3',
+                    data: [stats.q3 - stats.median],
+                    backgroundColor: currentColor,
+                    borderColor: currentColor,
+                    borderWidth: 1,
+                    base: stats.median,
+                }, {
+                    label: 'Q3 a Max',
+                    data: [stats.max - stats.q3],
+                    backgroundColor: 'rgba(0, 0, 0, 0)', // Transparente
+                    borderColor: currentColor,
+                    borderWidth: 1,
+                    base: stats.q3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Diagrama de Caja y Bigotes'
+                    },
+                    legend: {
+                        display: false // Ocultar leyenda
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return [
+                                    `Min: ${stats.min.toFixed(2)}`,
+                                    `Q1: ${stats.q1.toFixed(2)}`,
+                                    `Mediana: ${stats.median.toFixed(2)}`,
+                                    `Q3: ${stats.q3.toFixed(2)}`,
+                                    `Max: ${stats.max.toFixed(2)}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        title: {
+                            display: true,
+                            text: 'Valores'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                // Mostrar solo algunos valores claves
+                                if (value === stats.min || value === stats.q1 || 
+                                    value === stats.median || value === stats.q3 || 
+                                    value === stats.max) {
+                                    return value.toFixed(1);
+                                }
+                                return '';
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: true
+                    }
+                }
+            }
+        });
+        
+        // Añadir texto explicativo debajo del gráfico
+        const boxContainer = document.getElementById('boxplot');
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'summary-box';
+        infoDiv.innerHTML = `
+            <strong>Estadísticos del diagrama:</strong>
+            <ul>
+                <li>Mínimo: ${stats.min.toFixed(2)}</li>
+                <li>Primer Cuartil (Q1): ${stats.q1.toFixed(2)}</li>
+                <li>Mediana: ${stats.median.toFixed(2)}</li>
+                <li>Tercer Cuartil (Q3): ${stats.q3.toFixed(2)}</li>
+                <li>Máximo: ${stats.max.toFixed(2)}</li>
+                <li>Rango Intercuartílico (IQR): ${stats.iqr.toFixed(2)}</li>
+            </ul>
+        `;
+        
+        // Eliminar explicación anterior si existe
+        const prevInfo = boxContainer.querySelector('.summary-box');
+        if (prevInfo) {
+            prevInfo.remove();
+        }
+        
+        boxContainer.appendChild(infoDiv);
+    }
+    
+    function updateScatterPlot() {
+        selectedVariable = document.getElementById('variable').value;
+        selectedVariable2 = document.getElementById('variable2').value;
+        
+        const dataX = dataSet[selectedVariable] || [];
+        const dataY = dataSet[selectedVariable2] || [];
+        
+        if (dataX.length === 0 || dataY.length === 0) return;
+        
+        destroyChart('scatterPlot');
+        const ctx = document.getElementById('scatterPlot').getContext('2d');
+        
+        // Crear puntos para el gráfico de dispersión
+        const minLength = Math.min(dataX.length, dataY.length);
+        const scatterData = [];
+        
+        for (let i = 0; i < minLength; i++) {
+            scatterData.push({
+                x: dataX[i],
+                y: dataY[i]
+            });
+        }
+        
+        charts['scatterPlot'] = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: `${selectedVariable} vs ${selectedVariable2}`,
+                    data: scatterData,
+                    backgroundColor: currentColor,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Gráfico de Dispersión'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: selectedVariable
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: selectedVariable2
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateStemLeaf() {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        const binsCount = parseInt(document.getElementById('bins').value);
+        const limitedData = data.slice(0, binsCount).sort((a, b) => a - b);
+        
+        // Extraer tallos y hojas
+        let stemLeafText = "Diagrama de Tallo y Hoja para " + selectedVariable + ":\n\n";
+        
+        // Escalar datos si es necesario
+        let scaleFactor = 1;
+        const maxValue = Math.max(...limitedData);
+        
+        // Si los valores son demasiado grandes o pequeños, ajustar
+        if (maxValue >= 1000) {
+            scaleFactor = 100;
+        } else if (maxValue >= 100) {
+            scaleFactor = 10;
+        } else if (maxValue < 1) {
+            // Manejar decimales
+            if (maxValue < 0.01) {
+                scaleFactor = 0.01;
+            } else {
+                scaleFactor = 0.1;
+            }
+        }
+        
+        // Organizar por tallos
+        const stems = {};
+        limitedData.forEach(value => {
+            const scaledValue = value / scaleFactor;
+            const stem = Math.floor(scaledValue);
+            const leaf = Math.round((scaledValue - stem) * 10);
+            
+            if (!stems[stem]) {
+                stems[stem] = [];
+            }
+            
+            stems[stem].push(leaf);
+        });
+        
+        // Ordenar tallos
+        const sortedStems = Object.keys(stems).map(Number).sort((a, b) => a - b);
+        
+        // Formatear el diagrama
+        let scaleNote = "";
+        if (scaleFactor !== 1) {
+            scaleNote = `\nNota: Los valores se han escalado por un factor de ${scaleFactor}.`;
+        }
+        
+        sortedStems.forEach(stem => {
+            const leafs = stems[stem].sort((a, b) => a - b);
+            const leafsStr = leafs.join(' ');
+            
+            // Rellenar con ceros a la izquierda para alineación
+            const stemStr = stem.toString().padStart(2, ' ');
+            
+            stemLeafText += `${stemStr} | ${leafsStr}\n`;
+        });
+        
+        stemLeafText += scaleNote;
+        
+        document.getElementById('stemLeafDisplay').textContent = stemLeafText;
+    }
+    
+    function updatePieChart() {
+        const data = dataSet[selectedVariable] || [];
+        if (data.length === 0) return;
+        
+        destroyChart('pieChart');
+        const ctx = document.getElementById('pieChart').getContext('2d');
+        
+        const binsCount = parseInt(document.getElementById('bins').value);
+        const limitedData = data.slice(0, binsCount);
+        
+        // Agrupar datos para el gráfico de torta
+        // Para datos continuos, usamos intervalos de clase
+        const intervals = createIntervals(limitedData, Math.min(10, binsCount)); // Máximo 10 segmentos para mejor legibilidad
+        const freqTable = createFrequencyTable(limitedData, intervals);
+            
+            charts['pieChart'] = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: freqTable.map(row => row.interval),
+                    datasets: [{
+                        data: freqTable.map(row => row.frequency),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(199, 199, 199, 0.7)',
+                            'rgba(83, 102, 255, 0.7)',
+                            'rgba(40, 159, 64, 0.7)',
+                            'rgba(240, 120, 120, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Distribución de ${selectedVariable}`
+                        },
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = Math.round((value * 100) / total);
+                                    return `${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
